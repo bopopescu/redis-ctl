@@ -58,7 +58,7 @@ class HttpRequest(base.TestCase):
             self.assertEqual({
                 'host': '127.0.0.1',
                 'port': 7100,
-                'role': 'master',
+                'role': 'main',
                 'known': False,
             }, nodes[0])
 

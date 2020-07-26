@@ -24,16 +24,16 @@ def _info_slots(t):
             node = ClusterNode(*line.split(' '))
             return {
                 'node_id': node.node_id,
-                'slave': node.role_in_cluster != 'master',
-                'master_id': node.master_id if node.master_id != '-' else None,
+                'subordinate': node.role_in_cluster != 'main',
+                'main_id': node.main_id if node.main_id != '-' else None,
                 'slots': node.assigned_slots,
                 'slots_migrating': node.slots_migrating,
             }
     except (ValueError, LookupError, IOError, ReplyError):
         return {
             'node_id': None,
-            'slave': False,
-            'master_id': None,
+            'subordinate': False,
+            'main_id': None,
             'slots': [],
         }
 
@@ -176,7 +176,7 @@ class ProxyStatus(ProxyStatsBase):
                 raise NotImplementedError()
             st = parse_config(info)
             conns = 0
-            cluster_ok = read_slave = False
+            cluster_ok = read_subordinate = False
             threads = 0
             version = ''
             used_cpu_sys = used_cpu_user = completed_commands = total_process_elapse = mem_buffer_alloc = 0
@@ -205,7 +205,7 @@ class ProxyStatus(ProxyStatsBase):
                 used_cpu_user = float(st.get('used_cpu_user', 0))
                 completed_commands = int(st['completed_commands'])
                 total_process_elapse = float(st['total_process_elapse'])
-                read_slave = st.get('read_slave') == '1'
+                read_subordinate = st.get('read_subordinate') == '1'
                 if 'last_command_elapse' in st:
                     command_elapse = max(
                         [float(x) for x in st['last_command_elapse'].split(',')])
@@ -225,7 +225,7 @@ class ProxyStatus(ProxyStatsBase):
                 'completed_commands': completed_commands,
                 'total_process_elapse': total_process_elapse,
                 'mem_buffer_alloc': mem_buffer_alloc,
-                'read_slave': read_slave,
+                'read_subordinate': read_subordinate,
                 'cluster_ok': cluster_ok,
             })
             self.details['command_elapse'] = command_elapse

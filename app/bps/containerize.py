@@ -111,7 +111,7 @@ def create_proxy():
     else:
         micro_plan_cpu_slice = int(request.form['cpu_slice'])
     container_info = bp.app.container_client.deploy_proxy(
-        request.form['pod'], threads, request.form.get('read_slave') == 'rs',
+        request.form['pod'], threads, request.form.get('read_subordinate') == 'rs',
         request.form['netmode'], host=request.form.get('host'),
         port=port, micro_plan_cpu_slice=micro_plan_cpu_slice)
     logging.debug('Container proxy deployed, info=%s', container_info)

@@ -36,11 +36,11 @@ def _join(_, cluster_id, cluster_host, cluster_port, newin_host, newin_port):
     return True
 
 
-def _replicate(_, cluster_id, master_host, master_port, slave_host,
-               slave_port):
-    redistrib.command.replicate(master_host, master_port, slave_host,
-                                slave_port)
-    n = get_node_by_host_port(slave_host, slave_port)
+def _replicate(_, cluster_id, main_host, main_port, subordinate_host,
+               subordinate_port):
+    redistrib.command.replicate(main_host, main_port, subordinate_host,
+                                subordinate_port)
+    n = get_node_by_host_port(subordinate_host, subordinate_port)
     if n is None:
         return True
     n.assignee_id = cluster_id

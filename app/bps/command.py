@@ -2,7 +2,7 @@ import json
 from flask import request, abort
 from hiredis import ReplyError
 from redistrib.connection import Connection
-from redistrib.command import list_masters
+from redistrib.command import list_mains
 
 from app.utils import json_response
 from app.bpbase import Blueprint
@@ -43,11 +43,11 @@ def exec_cluster_nodes():
                        'cluster', 'nodes')
 
 
-def masters_detail(host, port):
+def mains_detail(host, port):
     node_details = bp.app.polling_result()['nodes']
     result = []
-    masters, myself = list_masters(host, port)
-    for n in masters:
+    mains, myself = list_mains(host, port)
+    for n in mains:
         r = {'host': n.host, 'port': n.port}
         try:
             r['slots_count'] = len(node_details[
@@ -58,13 +58,13 @@ def masters_detail(host, port):
     return result, myself
 
 
-@bp.route('/get_masters')
-def get_masters_info():
+@bp.route('/get_mains')
+def get_mains_info():
     try:
-        masters, myself = masters_detail(
+        mains, myself = mains_detail(
             request.args['host'], int(request.args['port']))
         return json_response({
-            'masters': masters,
+            'mains': mains,
             'myself': {
                 'role': myself.role_in_cluster,
                 'slots': len(myself.assigned_slots),
@@ -72,8 +72,8 @@ def get_masters_info():
         })
     except IOError:
         return json_response({
-            'masters': [],
-            'myself': {'role': 'master', 'slots': 0},
+            'mains': [],
+            'myself': {'role': 'main', 'slots': 0},
         })
 
 

@@ -44,13 +44,13 @@ class Base(object):
         return self.deploy('redis', pod, netmode, ncore, host, port, args,
                            image=image)
 
-    def deploy_proxy(self, pod, threads, read_slave, netmode, host=None,
+    def deploy_proxy(self, pod, threads, read_subordinate, netmode, host=None,
                      port=8889, micro_plan_cpu_slice=None, **kwargs):
         ncore = threads
         if micro_plan_cpu_slice is not None:
             ncore = micro_plan_cpu_slice * self.cpu_slice_factor()
         args = ['-b', str(port), '-t', str(threads)]
-        if read_slave:
+        if read_subordinate:
             args.extend(['-r', 'yes'])
         return self.deploy('cerberus', pod, netmode, ncore, host, port, args)
 

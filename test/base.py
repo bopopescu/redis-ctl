@@ -144,7 +144,7 @@ class FakeContainerClientBase(object):
         return self.deploy_with_network('redis', pod, netmode, host=host,
                                         args=[])
 
-    def deploy_proxy(self, pod, threads, read_slave, netmode, host=None,
+    def deploy_proxy(self, pod, threads, read_subordinate, netmode, host=None,
                      port=8889, *args, **kwarge):
         return self.deploy_with_network(
             'cerberus', pod, netmode, ncore=threads, host=host, args=[])

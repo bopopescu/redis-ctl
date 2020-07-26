@@ -51,12 +51,12 @@ def fix_cluster_migrating():
     c = models.cluster.get_by_id(int(request.form['cluster_id']))
     if c is None:
         raise ValueError('no such cluster')
-    masters = redistrib.command.list_masters(
+    mains = redistrib.command.list_mains(
         c.nodes[0].host, c.nodes[0].port)[0]
     task = models.task.ClusterTask(
         cluster_id=c.id, task_type=models.task.TASK_TYPE_FIX_MIGRATE,
         user_id=bp.app.get_user_id())
-    for node in masters:
+    for node in mains:
         task.add_step('fix_migrate', host=node.host, port=node.port)
     db.session.add(task)
 
@@ -198,15 +198,15 @@ def batch_tasks():
         if node.assignee_id is not None:
             raise ValueError('node already serving')
 
-        master = models.node.get_by_host_port(n['mhost'], int(n['mport']))
-        if master is None:
+        main = models.node.get_by_host_port(n['mhost'], int(n['mport']))
+        if main is None:
             raise ValueError('no such node')
-        if master.assignee_id != c.id:
-            raise ValueError('master not in the cluster')
+        if main.assignee_id != c.id:
+            raise ValueError('main not in the cluster')
 
         task.add_step(
-            'replicate', master_host=master.host, master_port=master.port,
-            slave_host=node.host, slave_port=node.port, cluster_id=c.id)
+            'replicate', main_host=main.host, main_port=main.port,
+            subordinate_host=node.host, subordinate_port=node.port, cluster_id=c.id)
         node.assignee_id = c.id
         db.session.add(node)
 
@@ -227,14 +227,14 @@ def batch_tasks():
 @bp.route_post_json('/replicate')
 def replicate():
     n = models.node.get_by_host_port(
-        request.form['master_host'], int(request.form['master_port']))
+        request.form['main_host'], int(request.form['main_port']))
     if n is None or n.assignee_id is None:
         raise ValueError('unable to replicate')
     task = models.task.ClusterTask(
         cluster_id=n.assignee_id, task_type=models.task.TASK_TYPE_REPLICATE,
         user_id=bp.app.get_user_id())
     task.add_step('replicate', cluster_id=n.assignee_id,
-                  master_host=n.host, master_port=n.port,
-                  slave_host=request.form['slave_host'],
-                  slave_port=int(request.form['slave_port']))
+                  main_host=n.host, main_port=n.port,
+                  subordinate_host=request.form['subordinate_host'],
+                  subordinate_port=int(request.form['subordinate_port']))
     db.session.add(task)

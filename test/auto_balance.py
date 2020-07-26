@@ -41,7 +41,7 @@ class AutoBalance(base.TestCase):
                 'cluster': c1_id,
                 'pod': 'pod',
                 'aof': '0',
-                'slave_count': 0,
+                'subordinate_count': 0,
             })
             self.assertReqStatus(200, r)
             p = get_balance_plan_by_addr('10.0.0.1', 6301)
@@ -54,16 +54,16 @@ class AutoBalance(base.TestCase):
             self.assertIsNotNone(p)
             self.assertEqual('pod', p.pod)
             self.assertEqual(None, p.host)
-            self.assertEqual([], p.slaves)
+            self.assertEqual([], p.subordinates)
             self.assertEqual(False, p.aof)
 
             r = client.post('/cluster/set_balance_plan', data={
                 'cluster': c0_id,
                 'pod': 'pod',
                 'aof': '1',
-                'master_host': '10.100.1.1',
-                'slave_count': 2,
-                'slaves': '10.100.1.2,',
+                'main_host': '10.100.1.1',
+                'subordinate_count': 2,
+                'subordinates': '10.100.1.2,',
             })
             self.assertReqStatus(200, r)
             r = client.post('/cluster/del_balance_plan', data={
@@ -77,13 +77,13 @@ class AutoBalance(base.TestCase):
             self.assertIsNotNone(p0)
             self.assertEqual('pod', p0.pod)
             self.assertEqual('10.100.1.1', p0.host)
-            self.assertEqual([{'host': '10.100.1.2'}, {}], p0.slaves)
+            self.assertEqual([{'host': '10.100.1.2'}, {}], p0.subordinates)
             self.assertEqual(True, p0.aof)
 
             p1 = get_balance_plan_by_addr('10.0.0.1', 6302)
             self.assertEqual(p0.id, p1.id)
 
-    def test_master_only(self):
+    def test_main_only(self):
         with self.app.test_client() as client:
             n = models.node.create_instance('127.0.0.1', 6301)
             c = models.cluster.create_cluster('the quick brown fox')
@@ -97,7 +97,7 @@ class AutoBalance(base.TestCase):
             add_node_to_balance_for('127.0.0.1', 6301, _get_balance_plan({
                 'pod': 'std',
                 'aof': True,
-                'slaves': [],
+                'subordinates': [],
             }), [2, 3, 5, 7], self.app)
             self.assertTrue(1 in self.app.container_client.deployed)
             self.assertDictEqual({
@@ -144,7 +144,7 @@ class AutoBalance(base.TestCase):
                 'slots': [2, 3],
             }, s.args)
 
-    def test_master_with_slaves(self):
+    def test_main_with_subordinates(self):
         with self.app.test_client() as client:
             n = models.node.create_instance('127.0.0.1', 6301)
             c = models.cluster.create_cluster('the quick brown fox')
@@ -158,7 +158,7 @@ class AutoBalance(base.TestCase):
             add_node_to_balance_for('127.0.0.1', 6301, _get_balance_plan({
                 'pod': 'std',
                 'aof': True,
-                'slaves': [{}, {}],
+                'subordinates': [{}, {}],
             }), [2, 3, 5, 7, 11, 13, 17], self.app)
             self.assertTrue(1 in self.app.container_client.deployed)
             self.assertDictEqual({
@@ -205,20 +205,20 @@ class AutoBalance(base.TestCase):
             self.assertEqual('replicate', s.command)
             self.assertDictEqual({
                 'cluster_id': 1,
-                'master_host': '10.0.0.1',
-                'master_port': 6379,
-                'slave_host': '10.0.0.2',
-                'slave_port': 6379,
+                'main_host': '10.0.0.1',
+                'main_port': 6379,
+                'subordinate_host': '10.0.0.2',
+                'subordinate_port': 6379,
             }, s.args)
 
             s = steps[2]
             self.assertEqual('replicate', s.command)
             self.assertDictEqual({
                 'cluster_id': 1,
-                'master_host': '10.0.0.1',
-                'master_port': 6379,
-                'slave_host': '10.0.0.3',
-                'slave_port': 6379,
+                'main_host': '10.0.0.1',
+                'main_port': 6379,
+                'subordinate_host': '10.0.0.3',
+                'subordinate_port': 6379,
             }, s.args)
 
             s = steps[3]
@@ -255,7 +255,7 @@ class AutoBalance(base.TestCase):
                 'pod': 'std',
                 'aof': True,
                 'host': '10.0.1.173',
-                'slaves': [{}, {'host': '10.0.1.174'}],
+                'subordinates': [{}, {'host': '10.0.1.174'}],
             }), [2, 3, 5, 7, 11, 13, 17, 19], self.app)
             self.assertTrue(1 in self.app.container_client.deployed)
             self.assertDictEqual({
@@ -322,20 +322,20 @@ class AutoBalance(base.TestCase):
             self.assertEqual('replicate', s.command)
             self.assertDictEqual({
                 'cluster_id': 1,
-                'master_host': '10.0.0.1',
-                'master_port': 6379,
-                'slave_host': '10.0.0.2',
-                'slave_port': 6379,
+                'main_host': '10.0.0.1',
+                'main_port': 6379,
+                'subordinate_host': '10.0.0.2',
+                'subordinate_port': 6379,
             }, s.args)
 
             s = steps[2]
             self.assertEqual('replicate', s.command)
             self.assertDictEqual({
                 'cluster_id': 1,
-                'master_host': '10.0.0.1',
-                'master_port': 6379,
-                'slave_host': '10.0.0.3',
-                'slave_port': 6379,
+                'main_host': '10.0.0.1',
+                'main_port': 6379,
+                'subordinate_host': '10.0.0.3',
+                'subordinate_port': 6379,
             }, s.args)
 
             s = steps[3]
@@ -396,7 +396,7 @@ class AutoBalance(base.TestCase):
                 '127.0.0.1', 6301, _get_balance_plan({
                     'pod': 'std',
                     'aof': True,
-                    'slaves': [{}, {}],
+                    'subordinates': [{}, {}],
                 }), [2, 3, 5, 7, 11, 13, 17], self.app)
 
             self.assertEqual(0, len(self.app.container_client.deployed))
@@ -414,9 +414,9 @@ class AutoBalance(base.TestCase):
             r = client.post('/cluster/set_balance_plan', data={
                 'cluster': cluster_id,
                 'pod': 'ppp',
-                'master_host': '10.0.0.100',
-                'slave_count': '2',
-                'slaves': '10.0.0.101,',
+                'main_host': '10.0.0.100',
+                'subordinate_count': '2',
+                'subordinates': '10.0.0.101,',
                 'aof': '0',
             })
             self.assertReqStatus(200, r)

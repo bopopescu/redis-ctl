@@ -30,11 +30,11 @@ class Containerize(base.TestCase):
                 r['port'] = port
                 return r
 
-            def deploy_proxy(self, pod, threads, read_slave, netmode, host=None,
+            def deploy_proxy(self, pod, threads, read_subordinate, netmode, host=None,
                              port=8889, *args, **kwarge):
                 port = port + self.offset
                 r = base.FakeContainerClientBase.deploy_proxy(
-                    self, pod, threads, read_slave, netmode, host=host,
+                    self, pod, threads, read_subordinate, netmode, host=host,
                     port=port, *args, **kwarge)
                 r['port'] = port
                 return r

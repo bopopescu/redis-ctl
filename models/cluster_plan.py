@@ -30,8 +30,8 @@ class ClusterBalancePlan(Base):
         return self.balance_plan.get('host')
 
     @cached_property
-    def slaves(self):
-        return self.balance_plan.get('slaves', [])
+    def subordinates(self):
+        return self.balance_plan.get('subordinates', [])
 
     @cached_property
     def aof(self):

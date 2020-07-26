@@ -35,7 +35,7 @@ class Cluster(Base):
             p.balance_plan = {
                 'pod': None,
                 'entrypoint': None,
-                'slaves': [],
+                'subordinates': [],
             }
             p.save()
         return p

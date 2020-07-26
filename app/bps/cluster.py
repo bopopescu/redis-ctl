@@ -56,7 +56,7 @@ def cluster_panel(cluster_id):
     for p in c.proxies:
         p.details = proxy_details.get('%s:%d' % (p.host, p.port), {})
     return render_template(
-        'cluster/panel.html', cluster=c, nodes=nodes, plan_max_slaves=3)
+        'cluster/panel.html', cluster=c, nodes=nodes, plan_max_subordinates=3)
 
 
 @bp.route('/list')
@@ -237,17 +237,17 @@ def cluster_set_balance_plan():
     plan = cluster.get_or_create_balance_plan()
     plan.balance_plan['pod'] = request.form['pod']
     plan.balance_plan['aof'] = request.form['aof'] == '1'
-    plan.balance_plan['host'] = request.form.get('master_host')
+    plan.balance_plan['host'] = request.form.get('main_host')
 
-    slave_count = int(request.form['slave_count'])
-    slaves_host = filter(None, request.form.get('slaves', '').split(','))
+    subordinate_count = int(request.form['subordinate_count'])
+    subordinates_host = filter(None, request.form.get('subordinates', '').split(','))
 
-    if 0 > slave_count or slave_count < len(slaves_host):
-        raise ValueError('invalid slaves')
+    if 0 > subordinate_count or subordinate_count < len(subordinates_host):
+        raise ValueError('invalid subordinates')
 
-    plan.balance_plan['slaves'] = [{} for _ in xrange(slave_count)]
-    for i, h in enumerate(slaves_host):
-        plan.balance_plan['slaves'][i]['host'] = h
+    plan.balance_plan['subordinates'] = [{} for _ in xrange(subordinate_count)]
+    for i, h in enumerate(subordinates_host):
+        plan.balance_plan['subordinates'][i]['host'] = h
     plan.save()
 
 
